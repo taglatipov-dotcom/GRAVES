@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фото слайдер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 0;
+            height: 100vh;
+        }
+
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .gallery-section {
+            background: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .upload-area {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #2980b9;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .save-btn:hover {
+            background: #219a52;
+        }
+
+        .clear-btn {
+            width: 100%;
+            padding: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .clear-btn:hover {
+            background: #c0392b;
+        }
+
+        .duplicate-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .duplicate-btn:hover {
+            background: #e67e22;
+        }
+
+        .main-image-container {
+            position: relative;
+            max-width: 90%;
+            max-height: 70vh;
+            margin-bottom: 30px;
+        }
+
+        #mainImage {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .image-placeholder {
+            color: #ecf0f1;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #3498db;
+        }
+
+        .nav-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .tools {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tool-btn {
+            padding: 8px 16px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .tool-btn:hover {
+            background: #3498db;
+        }
+
+        .thumbnails {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border 0.3s;
+        }
+
+        .thumbnail:hover {
+            border-color: #3498db;
+        }
+
+        .thumbnail.active {
+            border-color: #e74c3c;
+        }
+
+        .image-info {
+            color: #ecf0f1;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .gallery-title {
+            color: #ecf0f1;
+            margin-bottom: 20px;
+        }
+
+        .form-buttons {
+            margin-top: 20px;
+        }
+        .copy-btn {
+            padding: 8px 16px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover:not(:disabled) {
+            background: #8e44ad;
+        }
+
+        .copy-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .form-separator {
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-container {
+            margin-bottom: 30px;
+        }
+
+        .thumbnail-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .thumbnail-filename {
+            color: #ecf0f1;
+            font-size: 10px;
+            text-align: center;
+            margin-top: 5px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Левая часть - форма -->
+        <div class="form-section">
+            <h2>Данные о фотографиях</h2>
+            <div id="formsContainer">
+                <div class="form-container">
+                    <form class="photo-form" id="photoForm">
+                        <div class="form-group">
+                            <label>ФИО:</label>
+                            <input type="text" name="fio">
+                        </div>
+                        <div class="form-group">
+                            <label>Дата рождения:</label>
+                            <input type="text" name="date1">
+                        </div>
+                        <div class="form-group">
+                            <label>Дата смерти:</label>
+                            <input type="text" name="date2">
+                        </div>
+                        <div class="form-group">
+                            <label>Надгробная надпись:</label>
+                            <textarea name="label"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                            <input type="checkbox" name="svo">
+                            Участник СВО
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                            <input type="checkbox" name="vov" >
+                            Участник ВОВ
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Категория могилы:</label>
+                            <select name="category">
+                                <option value="none">Неопознанная</option>
+                                <option value="working" selected>Действующая</option>
+                                <option value="abandoned">Заброшенная</option>
+                                <option value="empty">Пустой участок</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Религия:</label>
+                            <select name="religion">
+                                <option value="christ">Христианство</option>
+                                <option value="islam" >Ислам</option>
+                                <option value="none" selected>Нет данных</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="save-btn">Сохранить</button>
+                            <button type="button" class="clear-btn" id="clearGalleryBtn">Очистить галерею</button>
+                            <button type="button" class="duplicate-btn" id="duplicateFormBtn">Добавить человека</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая часть - галерея -->
+        <div class="gallery-section">
+            <h2 class="gallery-title">Галерея фотографий</h2>
+
+            <div class="upload-area">
+                <label for="fileInput" class="upload-btn">Выбрать фотографии</label>
+                <input type="file" id="fileInput" multiple accept="image/*">
+            </div>
+
+            <div class="main-image-container">
+                <div class="image-placeholder" id="imagePlaceholder">
+                    Загрузите фотографии для просмотра
+                </div>
+                <img id="mainImage" alt="Основное изображение">
+            </div>
+
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn" disabled>← Назад</button>
+                <button class="nav-btn" id="nextBtn" disabled>Вперед →</button>
+            </div>
+
+            <div class="tools">
+                <button class="tool-btn" id="rotateLeftBtn" title="Повернуть налево">↶</button>
+                <button class="tool-btn" id="rotateRightBtn" title="Повернуть направо">↷</button>
+                <button class="tool-btn" id="zoomInBtn" title="Увеличить">+</button>
+                <button class="tool-btn" id="zoomOutBtn" title="Уменьшить">-</button>
+                <button class="tool-btn" id="resetBtn" title="Сбросить">⟲</button>
+                <button class="copy-btn" id="copyImagesBtn" title="Копировать все изображения в буфер обмена" disabled>📋 Копировать все</button>
+            </div>
+
+            <div class="image-info">
+                <span id="imageCounter">0 из 0</span>
+            </div>
+
+            <div class="thumbnails" id="thumbnails">
+                <!-- Миниатюры будут добавляться здесь -->
+            </div>
+        </div>
+    </div>
+
+<script>
+    let currentImages = [];
+    let currentIndex = 0;
+    let currentRotation = 0;
+    let currentScale = 1;
+    let originalFileNames = []; // Массив для хранения оригинальных имен файлов
+
+    // Элементы DOM
+    const fileInput = document.getElementById('fileInput');
+    const mainImage = document.getElementById('mainImage');
+    const imagePlaceholder = document.getElementById('imagePlaceholder');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+    const rotateRightBtn = document.getElementById('rotateRightBtn');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const thumbnailsContainer = document.getElementById('thumbnails');
+    const imageCounter = document.getElementById('imageCounter');
+    const photoForm = document.getElementById('photoForm');
+    const clearGalleryBtn = document.getElementById('clearGalleryBtn');
+    const duplicateFormBtn = document.getElementById('duplicateFormBtn');
+    const formsContainer = document.getElementById('formsContainer');
+    const copyImagesBtn = document.getElementById('copyImagesBtn');
+
+    // Функция удаления дополнительных форм
+    function removeAdditionalForms() {
+        const formContainers = formsContainer.querySelectorAll('.form-container');
+
+        // Удаляем все формы, кроме первой (исходной)
+        for (let i = formContainers.length - 1; i > 0; i--) {
+            const separator = formContainers[i].previousElementSibling;
+            if (separator && separator.classList.contains('form-separator')) {
+                separator.remove();
+            }
+            formContainers[i].remove();
+        }
+    }
+
+    // Функция очистки галереи
+    function clearGallery() {
+        currentImages = [];
+        currentIndex = 0;
+        currentRotation = 0;
+        currentScale = 1;
+        originalFileNames = []; // Очищаем оригинальные имена
+
+        // Сброс основного изображения
+        mainImage.style.display = 'none';
+        mainImage.src = '';
+        imagePlaceholder.style.display = 'block';
+
+        // Очистка миниатюр
+        thumbnailsContainer.innerHTML = '';
+
+        // Сброс счетчика и навигации
+        updateCounter();
+        updateNavigation();
+
+        // Сброс поля загрузки файлов
+        fileInput.value = '';
+
+        console.log('Галерея очищена');
+    }
+
+    // Функция дублирования формы
+    function duplicateForm() {
+        const originalForm = document.querySelector('.photo-form');
+        const formsContainer = document.getElementById('formsContainer');
+
+        // Создаем клон формы
+        const clonedForm = originalForm.cloneNode(true);
+        clonedForm.id = 'photoForm_clone_' + Date.now();
+
+        // Удаляем кнопки "Очистить галерею" и "Дублировать форму" из клона
+        const clearBtn = clonedForm.querySelector('.clear-btn');
+        const duplicateBtn = clonedForm.querySelector('.duplicate-btn');
+        if (clearBtn) clearBtn.remove();
+        if (duplicateBtn) duplicateBtn.remove();
+
+        // Создаем контейнер для клонированной формы
+        const formContainer = document.createElement('div');
+        formContainer.className = 'form-container';
+        formContainer.appendChild(clonedForm);
+
+        // Добавляем разделитель
+        const separator = document.createElement('hr');
+        separator.className = 'form-separator';
+
+        // Вставляем клон после последней формы
+        formsContainer.appendChild(separator);
+        formsContainer.appendChild(formContainer);
+
+        // Обновляем обработчики для клонированной формы
+        updateClonedFormHandlers(clonedForm);
+
+        alert('Форма успешно продублирована!');
+    }
+
+    // Функция обновления обработчиков для клонированной формы
+    function updateClonedFormHandlers(form) {
+        // Обработчик отправки для клонированной формы
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFormSubmit(this);
+        });
+    }
+
+    // Общая функция обработки отправки формы
+    function handleFormSubmit(submittedForm) {
+        if (currentImages.length === 0) {
+            alert('Пожалуйста, загрузите хотя бы одну фотографию перед сохранением информации');
+            return;
+        }
+
+        // Собираем данные из всех форм
+        const allForms = document.querySelectorAll('.photo-form');
+        const formsData = [];
+
+        allForms.forEach(form => {
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            formsData.push(data);
+        });
+
+        // Создаем массив информации о фотографиях с оригинальными именами
+        const imagesInfo = currentImages.map((imagePath, index) => {
+            return {
+                server_path: imagePath,
+                original_name: originalFileNames[index] || 'unknown',
+                display_name: originalFileNames[index] || `Изображение ${index + 1}`
+            };
+        });
+
+        // Добавляем информацию о фотографиях
+        const finalData = {
+            forms: formsData,
+            images: imagesInfo,
+            totalImages: currentImages.length,
+            export_timestamp: new Date().toISOString()
+        };
+
+        // Показываем индикатор загрузки
+        const saveBtn = submittedForm.querySelector('.save-btn');
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Сохранение...';
+        saveBtn.disabled = true;
+
+        // Отправляем данные на сервер
+        fetch('/save_info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(finalData, null, 2)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                alert(`Данные успешно сохранены! Файл: ${result.filename}`);
+                // Очищаем галерею после сохранения
+                clearGallery();
+                // Удаляем все дополнительные формы
+                removeAdditionalForms();
+                // Сбрасываем исходную форму
+                photoForm.reset();
+            } else {
+                alert('Ошибка при сохранении: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Ошибка при сохранении данных на сервер');
+        })
+        .finally(() => {
+            // Восстанавливаем кнопку
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+        });
+    }
+
+    // Обработчик кнопки дублирования формы
+    duplicateFormBtn.addEventListener('click', function() {
+        duplicateForm();
+    });
+
+    // Обработчик оригинальной формы
+    photoForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleFormSubmit(this);
+    });
+
+    // Функция копирования всех изображений в буфер обмена
+    async function copyAllImagesToClipboard() {
+        if (currentImages.length === 0) return;
+
+        try {
+            copyImagesBtn.disabled = true;
+            copyImagesBtn.textContent = 'Копирование...';
+
+            // Создаем ZIP-архив со всеми изображениями
+            const JSZip = await loadJSZip();
+            const zip = new JSZip();
+
+            // Добавляем каждое изображение в архив
+            for (let i = 0; i < currentImages.length; i++) {
+                const imageUrl = currentImages[i];
+                const originalName = originalFileNames[i].slice(-1) || `image_${i + 1}.jpg`;
+
+                try {
+                    const response = await fetch(imageUrl);
+                    const blob = await response.blob();
+                    zip.file(originalName, blob);
+                } catch (error) {
+                    console.error(`Ошибка загрузки изображения ${originalName}:`, error);
+                }
+            }
+
+            // Генерируем ZIP-архив
+            const zipBlob = await zip.generateAsync({type: 'blob'});
+
+            // Копируем ZIP-архив в буфер обмена
+            const clipboardItem = new ClipboardItem({
+                'application/zip': zipBlob
+            });
+
+            await navigator.clipboard.write([clipboardItem]);
+            showNotification(`✅ Успешно скопировано ${currentImages.length} изображений в буфер обмена (ZIP-архив)`);
+
+        } catch (error) {
+            console.error('Ошибка при копировании изображений:', error);
+
+            // Альтернативный метод: попробовать скопировать по одному
+            try {
+                await copyImagesOneByOne();
+            } catch (fallbackError) {
+                console.error('Ошибка при резервном копировании:', fallbackError);
+                showNotification('❌ Не удалось скопировать изображения', true);
+            }
+        } finally {
+            copyImagesBtn.disabled = currentImages.length === 0;
+            copyImagesBtn.textContent = '📋 Копировать все';
+        }
+    }
+
+    // Функция для загрузки JSZip библиотеки
+    function loadJSZip() {
+        return new Promise((resolve, reject) => {
+            if (window.JSZip) {
+                resolve(window.JSZip);
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                script.onload = () => resolve(window.JSZip);
+                script.onerror = () => reject(new Error('Не удалось загрузить JSZip'));
+                document.head.appendChild(script);
+            }
+        });
+    }
+
+    // Резервный метод: копирование изображений по одному
+    async function copyImagesOneByOne() {
+        if (currentImages.length === 0) return;
+
+        let successCount = 0;
+
+        for (let i = 0; i < currentImages.length; i++) {
+            try {
+                const response = await fetch(currentImages[i]);
+                const blob = await response.blob();
+
+                const clipboardItem = new ClipboardItem({
+                    [blob.type]: blob
+                });
+
+                await navigator.clipboard.write([clipboardItem]);
+                successCount++;
+
+                // Небольшая задержка между копированиями
+                if (i < currentImages.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            } catch (error) {
+                console.error(`Ошибка при копировании изображения ${i + 1}:`, error);
+            }
+        }
+
+        if (successCount > 0) {
+            showNotification(`✅ Скопировано ${successCount} из ${currentImages.length} изображений`);
+        } else {
+            throw new Error('Не удалось скопировать ни одного изображения');
+        }
+    }
+
+    // Обработка загрузки файлов
+    fileInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        // Сохраняем оригинальные имена файлов
+        originalFileNames = files.map(file => file.name);
+
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('photos', file);
+        });
+
+        // Показываем индикатор загрузки
+        const uploadBtn = document.querySelector('.upload-btn');
+        const originalText = uploadBtn.textContent;
+        uploadBtn.textContent = 'Загрузка...';
+        uploadBtn.disabled = true;
+
+        // Отправка на сервер
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(filenames => {
+            currentImages = filenames.map(filename => `static/uploads/${filename}`);
+            if (currentImages.length > 0) {
+                currentIndex = 0;
+                showImage(currentIndex);
+                updateThumbnails();
+                updateNavigation();
+                copyImagesBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+            alert('Ошибка при загрузке файлов');
+        })
+        .finally(() => {
+            // Восстанавливаем кнопку
+            uploadBtn.textContent = originalText;
+            uploadBtn.disabled = false;
+        });
+    });
+
+    // Показать изображение
+    function showImage(index) {
+        if (currentImages.length === 0) return;
+
+        mainImage.style.display = 'block';
+        imagePlaceholder.style.display = 'none';
+        mainImage.src = currentImages[index];
+
+        // Сброс трансформаций для нового изображения
+        currentRotation = 0;
+        currentScale = 1;
+        applyTransform();
+
+        updateCounter();
+        updateActiveThumbnail();
+    }
+
+    // Обновить счетчик
+    function updateCounter() {
+        const originalName = originalFileNames[currentIndex] || `Изображение ${currentIndex + 1}`;
+        imageCounter.textContent = `${currentIndex + 1} из ${currentImages.length} - ${originalName}`;
+    }
+
+    // Обновить навигацию
+    function updateNavigation() {
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === currentImages.length - 1;
+
+        // Блокировка инструментов если нет изображений
+        const hasImages = currentImages.length > 0;
+        rotateLeftBtn.disabled = !hasImages;
+        rotateRightBtn.disabled = !hasImages;
+        zoomInBtn.disabled = !hasImages;
+        zoomOutBtn.disabled = !hasImages;
+        resetBtn.disabled = !hasImages;
+        copyImagesBtn.disabled = !hasImages;
+    }
+
+    // Обновить миниатюры
+    function updateThumbnails() {
+        thumbnailsContainer.innerHTML = '';
+        currentImages.forEach((image, index) => {
+            const thumbnailContainer = document.createElement('div');
+            thumbnailContainer.className = 'thumbnail-container';
+
+            const thumbnail = document.createElement('img');
+            thumbnail.src = image;
+            thumbnail.className = 'thumbnail' + (index === currentIndex ? ' active' : '');
+            thumbnail.title = originalFileNames[index] || `Изображение ${index + 1}`;
+            thumbnail.addEventListener('click', () => {
+                currentIndex = index;
+                showImage(currentIndex);
+                updateNavigation();
+            });
+
+            // Подпись с именем файла
+            const fileNameLabel = document.createElement('div');
+            fileNameLabel.className = 'thumbnail-filename';
+            fileNameLabel.textContent = originalFileNames[index] || `Img ${index + 1}`;
+
+            thumbnailContainer.appendChild(thumbnail);
+            thumbnailContainer.appendChild(fileNameLabel);
+            thumbnailsContainer.appendChild(thumbnailContainer);
+        });
+    }
+
+    // Обновить активную миниатюру
+    function updateActiveThumbnail() {
+        document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+            thumb.classList.toggle('active', index === currentIndex);
+        });
+    }
+
+    // Применить трансформации
+    function applyTransform() {
+        mainImage.style.transform = `rotate(${currentRotation}deg) scale(${currentScale})`;
+    }
+
+    // Обработчики навигации
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            showImage(currentIndex);
+            updateNavigation();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentIndex < currentImages.length - 1) {
+            currentIndex++;
+            showImage(currentIndex);
+            updateNavigation();
+        }
+    });
+
+    // Обработчики инструментов
+    rotateLeftBtn.addEventListener('click', () => {
+        currentRotation -= 90;
+        applyTransform();
+    });
+
+    rotateRightBtn.addEventListener('click', () => {
+        currentRotation += 90;
+        applyTransform();
+    });
+
+    zoomInBtn.addEventListener('click', () => {
+        currentScale *= 1.2;
+        applyTransform();
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+        currentScale /= 1.2;
+        applyTransform();
+    });
+
+    resetBtn.addEventListener('click', () => {
+        currentRotation = 0;
+        currentScale = 1;
+        applyTransform();
+    });
+
+    // Обработчик кнопки копирования изображений
+    copyImagesBtn.addEventListener('click', function() {
+        copyAllImagesToClipboard();
+    });
+
+    // Обработчик кнопки очистки галереи
+    clearGalleryBtn.addEventListener('click', function() {
+        if (currentImages.length === 0) {
+            alert('Галерея уже пуста');
+            return;
+        }
+
+        if (confirm('Вы уверены, что хотите очистить галерею? Все загруженные фотографии будут удалены из просмотрщика.')) {
+            clearGallery();
+            alert('Галерея очищена');
+        }
+    });
+
+    // Функция показа уведомления
+    function showNotification(message, isError = false) {
+        const notification = document.createElement('div');
+        notification.className = 'notification' + (isError ? ' error' : '');
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    // Горячие клавиши
+    document.addEventListener('keydown', (e) => {
+        if (currentImages.length === 0) return;
+
+        switch(e.key) {
+            case 'ArrowLeft':
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    showImage(currentIndex);
+                    updateNavigation();
+                }
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                if (currentIndex < currentImages.length - 1) {
+                    currentIndex++;
+                    showImage(currentIndex);
+                    updateNavigation();
+                }
+                break;
+            case 'r':
+            case 'к':
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    currentRotation += 90;
+                    applyTransform();
+                }
+                break;
+            case '+':
+                e.preventDefault();
+                currentScale *= 1.2;
+                applyTransform();
+                break;
+            case 'Escape':
+                e.preventDefault();
+                currentRotation = 0;
+                currentScale = 1;
+                applyTransform();
+                break;
+        }
+    });
+
+    // Инициализация состояния кнопок
+    updateNavigation();
+</script>
+</body>
+</html>
